@@ -1,17 +1,31 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# 関数のパラメータ
-N = 100  # Nを適切な値に設定
+# 関数 v(h) の定義
+def v(h):
+    return 0.9 * h**2 / (1 + h**2)
 
-# kの範囲を設定
-k = np.arange(1, (N-1)//2 + 1)
-y = 1 / (1 + np.cos(2 * np.pi * k / N))
+# 導関数 dv/dh の定義
+def dv_dh(h):
+    numerator = 1.8 * h * (1 + h**2) - 0.9 * h**3 * 2
+    denominator = (1 + h**2)**2
+    return numerator / denominator
 
-plt.figure(figsize=(8, 4))
-plt.plot(k, y, 'o-')
-plt.title(r'Graph of $y = \frac{1}{1 + \cos\left(\frac{2\pi k}{N}\right)}$')
-plt.xlabel('k')
-plt.ylabel('y')
+# h の範囲を定義
+h = np.linspace(-10, 10, 400)
+
+# v(h) と dv/dh の計算
+v_values = v(h)
+dv_dh_values = dv_dh(h)
+
+# グラフの描画
+plt.figure(figsize=(10, 6))
+plt.plot(h, dv_dh_values, label="dv/dh", color='r')
+plt.xlabel('h')
+plt.ylabel('dv/dh')
+plt.xlim(0,6)
+plt.ylim(0,0.6)
+plt.title('Derivative of v = 0.9 * h^2 / (1 + h^2)')
+plt.legend()
 plt.grid(True)
 plt.show()
