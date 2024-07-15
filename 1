@@ -1,0 +1,61 @@
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+r=0.2
+w=2
+L=11
+tau=1.0
+n=12
+def func(ver,t):
+    dvdt = []
+    for i in range(n):
+     xi=ver[2*i]
+     if i !=n-1:
+       xj=ver[2*(i+1)]
+       hi=xj-xi
+       h=hi
+     else:
+       x0=ver[0]
+       xn=ver[2*(n-1)]
+       hi=x0-xn+L
+       h=hi
+     Vhi=0.9*h**2/(1+h**2)
+     dxdt=ver[2*i+1]
+     dydt=(Vhi-ver[2*i+1])
+     dvdt.append(dxdt)
+     dvdt.append(dydt)
+    return dvdt
+X0 = [0.1,0,0.2,0,0.3,0,0.4,0,0.5,0,0.6,0,0.7,0,0.8,0,0.9,0,1.0,0,1.1,0,1.2,0]
+t = np.arange(0,3500,0.01)
+X = odeint(func,X0,t) #微分方程式を解く
+h0=X[:,2]-X[:,0]
+hi=L/n
+h=h0-hi
+#plt.plot(t,h) #グラフの作成
+#plt.show() #グラフの表示
+def find_local_maxima(data):
+    # データをNumPy配列に変換
+    data = np.array(data)
+    # 局所最大を求める条件を満たすブール配列を作成
+    local_maxima = (data[1:-1] > data[:-2]) & (data[1:-1] > data[2:])
+    # 局所最大のインデックスを取得
+    local_maxima_indices = np.where(local_maxima)[0] + 1
+    return local_maxima_indices, data[local_maxima_indices]
+# テストデータ
+data = h
+# 局所最大を探す
+indices, maxima = find_local_maxima(data)
+print("局所最大のインデックス:", indices)
+print("局所最大の値:", maxima)
+# #以下アニメーションで表示する場合
+# fig = plt.figure()
+# ims = []
+# frames = 100
+# for i in range(0,4000,int(len(t)/frames)):
+#     y = 0
+#     x = X[i,0]
+#     im = plt.plot(x,y,color='b',marker='o',markersize=10)
+#     ims.append(im)
+# ani = animation.ArtistAnimation(fig,ims)
+# plt.show()
