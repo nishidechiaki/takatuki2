@@ -1,0 +1,22 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# NとLの範囲を設定
+N_values = np.arange(4, 21)
+L_values = np.linspace(0, 20, 400)
+
+# グリッドを作成
+N, L = np.meshgrid(N_values, L_values)
+
+# Vの計算
+V = 0.9 * (L/N)**2 / (1 + (L/N)**2)
+
+# ヒートマップの作成
+plt.figure(figsize=(10, 6))
+cp = plt.contourf(N, L, V, levels=np.linspace(0, 0.9, 100), cmap='viridis')
+plt.colorbar(cp)
+plt.title(r'Stability Regions for $V = 0.9 \frac{(L/N)^2}{1 + (L/N)^2}$')
+plt.xlabel('N')
+plt.ylabel('L')
+plt.grid(True)
+plt.show()
