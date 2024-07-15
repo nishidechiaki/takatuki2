@@ -1,0 +1,17 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 関数のパラメータ
+N = 100  # Nを適切な値に設定
+
+# kの範囲を設定
+k = np.arange(1, (N-1)//2 + 1)
+y = 1 / (1 + np.cos(2 * np.pi * k / N))
+
+plt.figure(figsize=(8, 4))
+plt.plot(k, y, 'o-')
+plt.title(r'Graph of $y = \frac{1}{1 + \cos\left(\frac{2\pi k}{N}\right)}$')
+plt.xlabel('k')
+plt.ylabel('y')
+plt.grid(True)
+plt.show()
