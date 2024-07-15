@@ -1,0 +1,69 @@
+import numpy as np
+from scipy.interpolate import make_interp_spline  # scipy.interpolate から make_interp_spline をインポート
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+def func(ver, t, L):
+    dvdt = []
+    for i in range(n):
+        xi = ver[2 * i]
+        if i != n - 1:
+            xj = ver[2 * (i + 1)]
+            hi = xj - xi
+            h = hi
+        else:
+            x0 = ver[0]
+            xn = ver[2 * (n - 1)]
+            hi = x0 - xn + L
+            h = hi
+        Vhi = 0.9 * h**2 / (1 + h**2)
+        dxdt = ver[2 * i + 1]
+        dydt = (Vhi - ver[2 * i + 1])
+        dvdt.append(dxdt)
+        dvdt.append(dydt)
+    return dvdt
+def find_local_maxima(data):
+    # データをNumPy配列に変換
+    data = np.array(data)
+    # 局所最大を求める条件を満たすブール配列を作成
+    local_maxima = (data[1:-1] > data[:-2]) & (data[1:-1] > data[2:])
+    # 局所最大のインデックスを取得
+    local_maxima_indices = np.where(local_maxima)[0] + 1
+    return local_maxima_indices, data[local_maxima_indices]
+r = 0.2
+w = 2
+tau = 1.0
+n = 12
+X0 = [0.1, 0, 0.2, 0, 0.3, 0, 0.4, 0, 0.5, 0, 0.6, 0, 0.7, 0, 0.8, 0, 0.9, 0, 1.0, 0, 1.1, 0, 1.2, 0]
+t = np.arange(0, 500, 0.001)
+plt.figure(figsize=(10, 6))
+for L in np.arange(10, 11.5, 0.5):
+    X = odeint(func, X0, t, args=(L,))  # 微分方程式を解く
+    h0 = X[:, 2] - X[:, 0]
+    hi = L / n
+    h = h0 - hi
+    data = h
+    indices, maxima = find_local_maxima(data)
+    positive_indices = indices[maxima > 0]
+    positive_maxima = maxima[maxima > 0]
+    w = t[positive_indices[1:-1]]
+    wa = t[positive_indices[2:]]
+    wb = t[positive_indices[:-2]]
+    a = data[positive_indices[2:]]
+    b = data[positive_indices[:-2]]
+    a1 = np.abs(a)
+    b1 = np.abs(b)
+    r1 = np.log(a1)
+    r2 = np.log(b1)
+    ramuda = (r1 - r2) / (wa - wb)
+    rt = data[positive_indices[1:-1]]
+    rt_unique, unique_indices = np.unique(rt, return_index=True)
+    ramuda_unique = ramuda[unique_indices]
+    t_new = np.linspace(rt_unique.min(), rt_unique.max(), 500)
+    spl = make_interp_spline(rt_unique, ramuda_unique, k=3)
+    ramuda_smooth = spl(t_new)
+    plt.plot(t_new, ramuda_smooth, label=f'L={L:.1f}')
+plt.xlabel('rt')
+plt.ylabel('ramuda')
+plt.title('Smooth Curve Fitting for Different L')
+plt.legend()
+plt.show()
