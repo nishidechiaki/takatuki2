@@ -37,7 +37,7 @@ X0 = [0.1, 0, 0.2, 0, 0.3, 0, 0.4, 0, 0.5, 0, 0.6, 0, 0.7, 0, 0.8, 0, 0.9, 0, 1.
 t = np.arange(0, 500, 0.001)
 lambda_at_rt_0_2 = []  # rt = 0.2におけるλの値を格納するリスト
 
-for L in np.arange(10, 11.1, 0.1):
+for L in np.arange(10, 20.1, 0.1):
     X = odeint(func, X0, t, args=(L,))
     h0 = X[:, 2] - X[:, 0]
     hi = L / n
@@ -64,11 +64,11 @@ for L in np.arange(10, 11.1, 0.1):
     lambda_at_rt_0_2.append((rt_unique[closest_index], ramuda_unique[closest_index]))
 
 # λの座標を表示
-for coord in lambda_at_rt_0_2:
-    print(f" λ: {coord[1]}")
+#for coord in lambda_at_rt_0_2:
+    #print(f" λ: {coord[1]}")
 
 # Lの範囲と対応するλの値
-L_values = np.arange(10, 11.1, 0.1)
+L_values = np.arange(10, 20.1, 0.1)
 lambda_values = [coord[1] for coord in lambda_at_rt_0_2]  # 数値のみを取り出す
 
 # Lに対応するxnの値を計算
@@ -88,20 +88,25 @@ lambda_smooth = spl(xn_smooth)
 crossing_indices = np.where(np.diff(np.sign(lambda_smooth)))[0]
 crossing_points = xn_smooth[crossing_indices]
 
+# 最もλ=0に近い点を見つける
+closest_to_zero_index = np.argmin(np.abs(lambda_smooth))
+closest_mu = xn_smooth[closest_to_zero_index]
+
 # プロット
 plt.figure(figsize=(10, 6))
 plt.plot(xn_smooth, lambda_smooth, color='b', label='Smoothed λ values')
 plt.scatter(xn_values, lambda_values, color='r', marker='o', label='Original λ values')
 plt.scatter(crossing_points, np.zeros_like(crossing_points), color='g', marker='x', label='x-axis crossings')
+plt.scatter(closest_mu, lambda_smooth[closest_to_zero_index], color='purple', marker='s', label='Closest to λ=0')
 
 # グラフの装飾
-plt.xlabel('xn (12 / L)')
+plt.xlabel('μ')
 plt.ylabel('λ')
 plt.title('λ values vs xn')
 plt.legend()
 plt.grid(True)
 plt.show()
 
-# 交点の座標を表示
-for point in crossing_points:
-    print(f"x-axis crossing at xn = {point}")
+# 最もλ=0に近い点の座標を表示
+print(f"Closest to λ=0: μ = {closest_mu}, λ = {lambda_smooth[closest_to_zero_index]}")
+
