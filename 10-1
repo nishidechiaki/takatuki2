@@ -1,0 +1,59 @@
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+
+# Given parameters
+r = 0.2
+w = 2
+L = 11
+tau = 1.0
+n = 12
+
+# Differential equation function
+def func(ver, t):
+    dvdt = []
+    for i in range(n):
+        xi = ver[2*i]
+        if i != n-1:
+            xj = ver[2*(i+1)]
+            hi = xj - xi
+        else:
+            x0 = ver[0]
+            xn = ver[2*(n-1)]
+            hi = x0 - xn + L
+        Vhi = 0.9 * hi**2 / (1 + hi**2)
+        dxdt = ver[2*i + 1]
+        dydt = (Vhi - ver[2*i + 1])
+        dvdt.append(dxdt)
+        dvdt.append(dydt)
+    return dvdt
+
+# Initial conditions
+X0 = [0.1, 0, 0.2, 0, 0.3, 0, 0.4, 0, 0.5, 0, 0.6, 0, 0.7, 0, 0.8, 0, 0.9, 0, 1.0, 0, 1.1, 0, 1.2, 0]
+
+# Time vector
+t = np.arange(0, 400, 0.01)
+
+# Solve the differential equations
+X = odeint(func, X0, t)
+
+# Calculate h(t)
+h0 = X[:, 2] - X[:, 0]
+hi = L / n
+h = h0 - hi
+
+# Compute sigma(t)
+sigma_t = np.zeros(len(t))
+for i in range(len(t)):
+    h_mean = np.mean(h[:i+1])
+    sigma_t[i] = np.sqrt(np.sum((h[:i+1] - hi)**2) / (n - 1))
+
+# Plot sigma(t)
+plt.figure(figsize=(10, 6))
+plt.plot(t, sigma_t, label='σ(t)')
+plt.xlabel('Time t')
+plt.ylabel('σ(t)')
+plt.title('Graph of σ(t)')
+plt.legend()
+plt.grid(True)
+plt.show()
