@@ -1,0 +1,63 @@
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+
+r = 0.2
+w = 2
+tau = 1.0
+n = 12
+
+def func(ver, t, L):
+    dvdt = []
+    for i in range(n):
+        xi = ver[2 * i]
+        if i != n - 1:
+            xj = ver[2 * (i + 1)]
+            hi = xj - xi
+        else:
+            x0 = ver[0]
+            xn = ver[2 * (n - 1)]
+            hi = x0 - xn + L
+        Vhi = 0.9 * hi ** 2 / (1 + hi ** 2)
+        dxdt = ver[2 * i + 1]
+        dydt = (Vhi - ver[2 * i + 1])
+        dvdt.append(dxdt)
+        dvdt.append(dydt)
+    return dvdt
+
+X0 = [0.1, 0, 0.2, 0, 0.3, 0, 0.4, 0, 0.5, 0, 0.6, 0, 0.7, 0, 0.8, 0, 0.9, 0, 1.0, 0, 1.1, 0, 1.2, 0]
+t = np.arange(0, 3500, 0.01)
+L_values = np.arange(8.5, 10.6, 0.1)  # Lの範囲
+
+sigma_values = []
+
+for L in L_values:
+    X = odeint(func, X0, t, args=(L,))  # 微分方程式を解く
+
+    # すべての車の車間距離を計算
+    h0_all = []
+    for i in range(n):
+        if i != n - 1:
+            h0 = X[:, 2 * (i + 1)] - X[:, 2 * i]
+        else:
+            h0 = X[:, 0] - X[:, 2 * (i)] + L
+        h0_all.append(h0)
+
+    h0_all = np.array(h0_all)
+
+    # 平均車間距離を計算
+    h_avg = L / n
+
+    # 標準偏差を計算
+    sigma_t = np.sqrt(np.sum((h0_all - h_avg)**2, axis=0) / (n - 1))
+
+    # 最後の時刻での標準偏差を保存
+    sigma_values.append(sigma_t[-1])
+
+plt.figure(figsize=(10, 6))
+plt.plot(L_values, sigma_values, marker='o')
+plt.xlabel('L')
+plt.ylabel('Standard Deviation of Car Spacing (σ)')
+plt.title('Standard Deviation of Car Spacing for Different L Values')
+plt.grid(True)
+plt.show()
