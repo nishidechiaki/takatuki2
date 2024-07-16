@@ -1,0 +1,28 @@
+import numpy as np
+from scipy.interpolate import make_interp_spline
+import matplotlib.pyplot as plt
+
+# 与えられた点の定義（後ろから順番に書き換え済み）
+x_points = [9.562836498194322, 9.607901769195053, 9.644640046970595, 9.67508879731864, 9.70071565664898, 9.722522936084081]
+y_points = [0.25, 0.2, 0.15, 0.10, 0.05, 0.01]
+
+
+# x_points と y_points をソート（後ろから順番に既に並んでいるため不要）
+# sorted_indices = np.argsort(x_points)
+# x_points_sorted = np.array(x_points)[sorted_indices]
+# y_points_sorted = np.array(y_points)[sorted_indices]
+
+# スプライン補間
+x_smooth = np.linspace(min(x_points), max(x_points), 300)
+spl = make_interp_spline(x_points, y_points, k=3)  # 3次スプライン
+y_smooth = spl(x_smooth)
+
+# プロット
+plt.figure(figsize=(10, 6))
+plt.plot(x_smooth, y_smooth, label='Smooth curve')
+plt.scatter(x_points, y_points, color='red', label='Data points')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Smooth curve through given points')
+plt.legend()
+plt.show()
