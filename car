@@ -1,0 +1,105 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import random
+
+# Create a function to plot cars in a line with equal spacing and car illustrations
+def plot_cars_equal_spacing_with_illustrations(num_cars, car_length, h):
+    car_image = plt.imread('car_image.png')  # Load the car image file
+    x_positions = [i * (car_length + h) for i in range(num_cars)]
+    y_position = 0
+
+    fig, ax = plt.subplots(figsize=(10, 2))
+    for i, x in enumerate(x_positions):
+        ax.imshow(car_image, aspect='auto', extent=[x + car_length, x, y_position, y_position + 1])
+        ax.text(x + car_length / 2, y_position + 1.1, str(i + 1), ha='center', va='bottom')
+        
+        center_x = x + car_length / 2
+        ax.plot(center_x, 0.25, 'bo')  # Draw a blue dot at the center of each car
+
+        if i < num_cars - 1:  # Draw h* between car centers
+            next_center_x = x_positions[i + 1] + car_length / 2
+            mid_x = (center_x + next_center_x) / 2
+            ax.annotate('', xy=(center_x, 0.25), xytext=(next_center_x, 0.25),
+                        arrowprops=dict(arrowstyle='<->', color='red'))
+            ax.text(mid_x, 0.15, 'h*', ha='center', va='top', color='red')
+
+    # Draw the road line
+    ax.hlines(y=0.25, xmin=-2, xmax=x_positions[-1] + car_length + 2, color='black', linewidth=2)
+    
+    # Draw the road length L from the first car's center to the last car's center
+    first_center_x = x_positions[0] + car_length / 2
+    last_center_x = x_positions[-1] + car_length / 2
+    ax.annotate('', xy=(first_center_x, -0.5), xytext=(last_center_x, -0.5),
+                arrowprops=dict(arrowstyle='<->', color='blue'))
+    ax.text((first_center_x + last_center_x) / 2, -0.6, 'L', ha='center', va='top', color='blue')
+    
+    ax.set_title('Cars with Equal Spacing')
+    ax.set_xlim(-2, x_positions[-1] + car_length + 2)
+    ax.set_ylim(-1, 2)
+    ax.set_aspect('auto')  # Maintain aspect ratio
+    ax.set_xlabel('Distance')
+    ax.set_ylabel('Road')
+    ax.set_yticks([])
+    plt.show()
+
+# Create a function to plot cars in a line with varying spacing and car illustrations
+def plot_cars_varying_spacing_with_illustrations(num_cars, car_length, min_h, max_h):
+    car_image = plt.imread('car_image.png')  # Load the car image file
+    x_positions = [0]
+    h_values = []
+    for i in range(1, num_cars):
+        h = random.uniform(min_h, max_h)
+        h_values.append(h)
+        x_positions.append(x_positions[-1] + car_length + h)
+    y_position = 0
+
+    fig, ax = plt.subplots(figsize=(10, 2))
+    for i, x in enumerate(x_positions):
+        ax.imshow(car_image, aspect='auto', extent=[x + car_length, x, y_position, y_position + 1])
+        ax.text(x + car_length / 2, y_position + 1.1, str(i + 1), ha='center', va='bottom')
+        
+        center_x = x + car_length / 2
+        ax.plot(center_x, 0.25, 'bo')  # Draw a blue dot at the center of each car
+
+        if i < num_cars - 1:  # Draw hi between car centers
+            next_center_x = x_positions[i + 1] + car_length / 2
+            mid_x = (center_x + next_center_x) / 2
+            ax.annotate('', xy=(center_x, 0.25), xytext=(next_center_x, 0.25),
+                        arrowprops=dict(arrowstyle='<->', color='red'))
+            ax.text(mid_x, 0.15, f'h{i+1}', ha='center', va='top', color='red')
+
+    # Draw the road line
+    ax.hlines(y=0.25, xmin=-2, xmax=x_positions[-1] + car_length + 2, color='black', linewidth=2)
+    
+    # Draw the road length L from the first car's center to the last car's center
+    first_center_x = x_positions[0] + car_length / 2
+    last_center_x = x_positions[-1] + car_length / 2
+    ax.annotate('', xy=(first_center_x, -0.5), xytext=(last_center_x, -0.5),
+                arrowprops=dict(arrowstyle='<->', color='blue'))
+    ax.text((first_center_x + last_center_x) / 2, -0.6, 'L', ha='center', va='top', color='blue')
+    
+    ax.set_title('Cars with Varying Spacing')
+    ax.set_xlim(-2, x_positions[-1] + car_length + 2)
+    ax.set_ylim(-1, 2)
+    ax.set_aspect('auto')  # Maintain aspect ratio
+    ax.set_xlabel('Distance')
+    ax.set_ylabel('Road')
+    ax.set_yticks([])
+    plt.show()
+
+# Parameters
+num_cars = 12
+car_length = 4
+equal_h = 2
+min_h = 0.5  # Reduced minimum spacing
+max_h = 10   # Increased maximum spacing
+road_length_equal = (num_cars - 1) * (car_length + equal_h) + car_length  # Calculate the total road length for the equal spacing case
+
+# Plot cars with equal spacing and illustrations
+plot_cars_equal_spacing_with_illustrations(num_cars, car_length, equal_h)
+
+# Calculate road length for varying spacing case
+road_length_varying = sum([car_length + random.uniform(min_h, max_h) for _ in range(num_cars - 1)]) + car_length
+
+# Plot cars with varying spacing and illustrations
+plot_cars_varying_spacing_with_illustrations(num_cars, car_length, min_h, max_h)
