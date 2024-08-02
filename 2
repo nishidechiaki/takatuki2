@@ -37,7 +37,7 @@ w = 2
 tau = 1.0
 n = 12
 X0 = [0.1, 0, 0.2, 0, 0.3, 0, 0.4, 0, 0.5, 0, 0.6, 0, 0.7, 0, 0.8, 0, 0.9, 0, 1.0, 0, 1.1, 0, 1.2, 0]
-t = np.arange(0, 500, 0.001)
+t = np.arange(0, 3000, 0.001)
 
 plt.figure(figsize=(10, 6))
 
@@ -69,7 +69,7 @@ for L in np.arange(10, 11.1, 0.1):
     rt = data[indices[1:-1]]
     rt_unique, unique_indices = np.unique(rt, return_index=True)
     ramuda_unique = ramuda[unique_indices]
-    t_new = np.linspace(rt_unique.min(), rt_unique.max(), 500)
+    t_new = np.linspace(rt_unique.min()+0.1, rt_unique.max()-0.1, 500)
     spl = make_interp_spline(rt_unique, ramuda_unique, k=3)
     ramuda_smooth = spl(t_new)
     plt.plot(t_new, ramuda_smooth, label=f'L={L:.1f}')
@@ -78,4 +78,6 @@ plt.xlabel('rt')
 plt.ylabel('ramuda')
 plt.title('Smooth Curve Fitting for Different L')
 plt.legend()
-plt.show()
+#plt.show()
+plt.savefig("2-t=1500.png")
+plt.close()
