@@ -29,7 +29,7 @@ def find_local_maxima(data):
     local_maxima_indices = np.where(local_maxima)[0] + 1
     return local_maxima_indices, data[local_maxima_indices]
 
-r = 0.2
+r = 0.1
 w = 2
 tau = 1.0
 n = 12
@@ -37,7 +37,7 @@ X0 = [0.1, 0, 0.2, 0, 0.3, 0, 0.4, 0, 0.5, 0, 0.6, 0, 0.7, 0, 0.8, 0, 0.9, 0, 1.
 t = np.arange(0, 500, 0.001)
 lambda_at_rt_0_2 = []  # rt = 0.2におけるλの値を格納するリスト
 
-for L in np.arange(10, 20.1, 0.1):
+for L in np.arange(10, 11.1, 0.05):
     X = odeint(func, X0, t, args=(L,))
     h0 = X[:, 2] - X[:, 0]
     hi = L / n
@@ -59,45 +59,46 @@ for L in np.arange(10, 20.1, 0.1):
     rt = data[positive_indices[1:-1]]
     rt_unique, unique_indices = np.unique(rt, return_index=True)
     ramuda_unique = ramuda[unique_indices]
+    spl = make_interp_spline(rt_unique, ramuda_unique, k=3)
+    ramuda_r = spl(r)
     # rt = 0.2に最も近いλの値を格納
-    closest_index = np.argmin(np.abs(rt_unique - 0.3))
-    lambda_at_rt_0_2.append((rt_unique[closest_index], ramuda_unique[closest_index]))
-
+    #closest_index = np.argmin(np.abs(rt_unique - 0.1))
+    lambda_at_rt_0_2.append((r, ramuda_r))
 # λの座標を表示
 #for coord in lambda_at_rt_0_2:
     #print(f" λ: {coord[1]}")
 
 # Lの範囲と対応するλの値
-L_values = np.arange(10, 20.1, 0.1)
+L_values = np.arange(10, 11.1, 0.05)
+L_values2 = np.arange(8, 11.1, 0.05)
 lambda_values = [coord[1] for coord in lambda_at_rt_0_2]  # 数値のみを取り出す
 
 # Lに対応するxnの値を計算
-xn_values = 12 / L_values
-
+xn_values=  12/L_values
+xn_values2=  12/L_values2
 # xn_valuesとlambda_valuesのペアをソート
 sorted_indices = np.argsort(xn_values)
 xn_values_sorted = xn_values[sorted_indices]
 lambda_values_sorted = np.array(lambda_values)[sorted_indices]
 
-# 補間
-xn_smooth = np.linspace(xn_values_sorted.min(), xn_values_sorted.max(), 300)
-spl = make_interp_spline(xn_values_sorted, lambda_values_sorted, k=3)  # Cubic spline interpolation
-lambda_smooth = spl(xn_smooth)
+# 多項式フィッティング
+coefficients = np.polyfit(xn_values_sorted, lambda_values_sorted, 3)
+polynomial = np.poly1d(coefficients)
 
 # x軸との交点を求める
-crossing_indices = np.where(np.diff(np.sign(lambda_smooth)))[0]
-crossing_points = xn_smooth[crossing_indices]
+roots = polynomial.roots
+real_roots = roots[np.isreal(roots)].real
 
 # 最もλ=0に近い点を見つける
-closest_to_zero_index = np.argmin(np.abs(lambda_smooth))
-closest_mu = xn_smooth[closest_to_zero_index]
+closest_to_zero_index = np.argmin(np.abs(polynomial(xn_values2)))
+closest_mu = xn_values2[closest_to_zero_index]
 
 # プロット
 plt.figure(figsize=(10, 6))
-plt.plot(xn_smooth, lambda_smooth, color='b', label='Smoothed λ values')
+plt.plot(xn_values_sorted, polynomial(xn_values_sorted), color='b', label='Fitted λ values')
 plt.scatter(xn_values, lambda_values, color='r', marker='o', label='Original λ values')
-plt.scatter(crossing_points, np.zeros_like(crossing_points), color='g', marker='x', label='x-axis crossings')
-plt.scatter(closest_mu, lambda_smooth[closest_to_zero_index], color='purple', marker='s', label='Closest to λ=0')
+plt.scatter(real_roots, np.zeros_like(real_roots), color='g', marker='x', label='x-axis crossings')
+plt.scatter(closest_mu, polynomial(closest_mu), color='purple', marker='s', label='Closest to λ=0')
 
 # グラフの装飾
 plt.xlabel('μ')
@@ -105,8 +106,12 @@ plt.ylabel('λ')
 plt.title('λ values vs xn')
 plt.legend()
 plt.grid(True)
-plt.show()
-
+#plt.show()
+plt.savefig("3-1.png")
+plt.close()
 # 最もλ=0に近い点の座標を表示
-print(f"Closest to λ=0: μ = {closest_mu}, λ = {lambda_smooth[closest_to_zero_index]}")
+print(f"Closest to λ=0: μ = {closest_mu}, λ = {polynomial(closest_mu)}")
 
+# x軸との交点を表示
+for root in real_roots:
+    print(f"x-axis crossing: μ = {root}")
