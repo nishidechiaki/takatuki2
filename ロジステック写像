@@ -1,0 +1,103 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# ロジスティック写像のパラメータ
+r = 3.7  # 制御パラメータ
+x0 = 0.5  # 初期値
+iterations = 1000  # 時間ステップ数
+
+# ロジスティック写像の計算
+x_values = np.zeros(iterations)
+x_values[0] = x0
+
+for t in range(1, iterations):
+    x_values[t] = r * x_values[t-1] * (1 - x_values[t-1])
+
+# グラフ描画（ロジスティック写像）
+plt.figure(figsize=(10, 6))
+plt.plot(range(iterations), x_values, label='ロジスティック写像')
+plt.title('ロジスティック写像の挙動')
+plt.xlabel('時間 (ステップ数)')
+plt.ylabel('x 値')
+plt.legend()
+plt.grid(True)
+#plt.show()
+plt.savefig("ロジステック写像1.png")
+plt.close()
+# リアプノフ指数を計算する関数
+def lyapunov_exponent(r, x0, iterations):
+    delta = 1e-8  # 初期の微小な差異
+    x1 = x0
+    x2 = x0 + delta  # 微小な差異を持たせた初期値
+
+    sum_ln = 0.0
+    for t in range(iterations):
+        x1 = r * x1 * (1 - x1)
+        x2 = r * x2 * (1 - x2)
+        
+        delta_x = np.abs(x2 - x1)
+        
+        if delta_x < 1e-10:
+            delta_x = 1e-10  # 計算の安定化のための下限値設定
+        
+        sum_ln += np.log(np.abs(delta_x))
+        
+        # リスケールして次のステップへ
+        x2 = x1 + delta_x
+
+    # 平均をとってリアプノフ指数を計算
+    return sum_ln / iterations
+
+# リアプノフ指数の計算
+lyapunov_exp = lyapunov_exponent(r, x0, iterations)
+print(f"リアプノフ指数: {lyapunov_exp}")
+
+# リアプノフ指数が正かどうかでカオス判定
+if lyapunov_exp > 0:
+    print("このシステムはカオス的な挙動を示します。")
+else:
+    print("このシステムはカオスではありません。")
+
+# 相空間の再構成を行う関数
+def reconstruct_phase_space(data, delay, dimension):
+    n = len(data)
+    phase_space = np.zeros((n - (dimension - 1) * delay, dimension))
+
+    for i in range(dimension):
+        phase_space[:, i] = data[i * delay:n - (dimension - 1 - i) * delay]
+    
+    return phase_space
+
+# パラメータの設定
+delay = 10  # 時間遅れ
+dimension = 3  # 埋め込み次元
+
+# 相空間の再構成
+phase_space = reconstruct_phase_space(x_values, delay, dimension)
+
+# 3次元プロット（相空間の再構成）
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot(phase_space[:, 0], phase_space[:, 1], phase_space[:, 2])
+ax.set_title('相空間再構成')
+ax.set_xlabel('x(t)')
+ax.set_ylabel('x(t+τ)')
+ax.set_zlabel('x(t+2τ)')
+#plt.show()
+plt.savefig("ロジステック写像2.png")
+plt.close()
+# フーリエ変換を使って周波数解析
+frequencies = np.fft.fftfreq(len(x_values))
+fft_values = np.fft.fft(x_values)
+
+# フーリエ変換の結果を可視化
+plt.figure(figsize=(10, 6))
+plt.plot(frequencies, np.abs(fft_values))
+plt.title('フーリエ変換による周波数解析')
+plt.xlabel('周波数')
+plt.ylabel('振幅')
+plt.grid(True)
+#plt.show()
+plt.savefig("ロジステック写像3.png")
+plt.close()
