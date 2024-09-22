@@ -1,0 +1,78 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+
+# パラメータ設定
+c0 = 1.0         # 圧力項の定数
+tau = 0.5        # 緩和時間
+rho_max = 1.0    # 最大密度
+V_max = 1.0      # 最大速度
+
+# 理想速度の定義
+def ve(rho):
+    return V_max * (1 - rho / rho_max)
+
+# 連続の方程式と運動方程式
+def traffic_model(state, t, Nx, dx):
+    rho = state[:Nx]
+    v = state[Nx:]
+    
+    # rhoとvの時間変化率
+    drho_dt = np.zeros(Nx)
+    dv_dt = np.zeros(Nx)
+    
+    # 境界条件: 周期境界条件を仮定
+    for i in range(1, Nx - 1):
+        drho_dt[i] = -(rho[i] * (v[i + 1] - v[i - 1]) / (2 * dx)) - v[i] * (rho[i + 1] - rho[i - 1]) / (2 * dx)
+        dv_dt[i] = -v[i] * (v[i + 1] - v[i - 1]) / (2 * dx) - (c0 ** 2 / rho[i]) * (rho[i + 1] - rho[i - 1]) / (2 * dx) \
+                   + (ve(rho[i]) - v[i]) / tau
+    
+    # 境界条件を適用
+    drho_dt[0] = drho_dt[-1] = 0
+    dv_dt[0] = dv_dt[-1] = 0
+    
+    return np.concatenate([drho_dt, dv_dt])
+
+# 初期条件の設定
+Nx = 100  # 空間の分割数
+L = 10.0  # 空間の長さ
+dx = L / (Nx - 1)  # 空間ステップ
+x = np.linspace(0, L, Nx)  # 位置のリスト
+
+# 初期密度と速度
+rho0 = 0.8 * np.ones(Nx) + 0.2 * np.sin(2 * np.pi * x / L)  # 密度の初期条件 (わずかに波のように変動)
+v0 = 0.5 * np.ones(Nx)  # 初期速度（一定）
+
+# 初期状態
+initial_state = np.concatenate([rho0, v0])
+
+# 時間範囲
+t = np.linspace(0, 50, 1000)  # 時間を細かく区切ってシミュレーション
+
+# 数値解法で解を求める
+solution = odeint(traffic_model, initial_state, t, args=(Nx, dx))
+
+# 結果を分割（密度と速度）
+rho_solution = solution[:, :Nx]
+v_solution = solution[:, Nx:]
+
+# Poincaré断面をプロットするためのタイミング
+poincare_times = np.arange(0, max(t), 2 * np.pi)  # 2πごとにポイントを取る
+poincare_points = []
+
+for time_point in poincare_times:
+    idx = np.abs(t - time_point).argmin()  # 最も近い時間のインデックスを取得
+    poincare_points.append([rho_solution[idx, Nx//2], v_solution[idx, Nx//2]])  # 中央の位置での値をプロット
+
+poincare_points = np.array(poincare_points)
+
+# Poincaré断面のプロット
+plt.figure(figsize=(8, 6))
+plt.plot(poincare_points[:, 0], poincare_points[:, 1], 'bo', markersize=2)
+plt.title("Poincaré Section for Traffic Flow Model")
+plt.xlabel("Density (ρ)")
+plt.ylabel("Velocity (v)")
+plt.grid(True)
+#plt.show()
+plt.savefig("poincare.png")
+plt.close()
