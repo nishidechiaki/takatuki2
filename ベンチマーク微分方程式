@@ -1,0 +1,96 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+from mpl_toolkits.mplot3d import Axes3D
+
+# ローレンツ方程式の定義
+def lorenz(t, state, sigma, rho, beta):
+    x, y, z = state
+    dx_dt = sigma * (y - x)
+    dy_dt = x * (rho - z) - y
+    dz_dt = x * y - beta * z
+    return [dx_dt, dy_dt, dz_dt]
+
+# パラメータの設定
+sigma = 10.0
+rho = 28.0
+beta = 8.0 / 3.0
+
+# 初期値
+initial_state = [1.0, 1.0, 1.0]
+
+# 時間範囲
+t_span = (0, 50)
+t_eval = np.linspace(t_span[0], t_span[1], 10000)
+
+# 微分方程式を解く
+sol = solve_ivp(lorenz, t_span, initial_state, args=(sigma, rho, beta), t_eval=t_eval)
+
+# 解を取得
+x_values = sol.y[0]
+y_values = sol.y[1]
+z_values = sol.y[2]
+
+# 3次元プロット（ローレンツアトラクタ）
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot(x_values, y_values, z_values)
+ax.set_title('ローレンツアトラクタ')
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+plt.show()
+
+# リアプノフ指数の計算（ローレンツ方程式に対して）
+def lyapunov_exponent_lorenz(sigma, rho, beta, initial_state, t_span, t_eval):
+    delta = 1e-8  # 微小な差異
+    state1 = np.array(initial_state)
+    state2 = np.array(initial_state) + delta  # 微小な差異を持たせた初期状態
+
+    sum_ln = 0.0
+
+    for i in range(1, len(t_eval)):
+        t = t_eval[i-1], t_eval[i]
+
+        # 微小な差異を持つ二つの状態を解く
+        sol1 = solve_ivp(lorenz, t, state1, args=(sigma, rho, beta))
+        sol2 = solve_ivp(lorenz, t, state2, args=(sigma, rho, beta))
+
+        state1 = sol1.y[:, -1]
+        state2 = sol2.y[:, -1]
+
+        delta_state = np.linalg.norm(state2 - state1)
+
+        if delta_state < 1e-10:
+            delta_state = 1e-10  # 計算の安定化のため
+
+        sum_ln += np.log(np.abs(delta_state))
+
+        # リスケールして次のステップへ
+        state2 = state1 + delta_state
+
+    # 平均してリアプノフ指数を計算
+    return sum_ln / (len(t_eval) - 1)
+
+# リアプノフ指数の計算
+lyapunov_exp = lyapunov_exponent_lorenz(sigma, rho, beta, initial_state, t_span, t_eval)
+print(f"リアプノフ指数: {lyapunov_exp}")
+
+# リアプノフ指数が正かどうかでカオス判定
+if lyapunov_exp > 0:
+    print("このシステムはカオス的な挙動を示します。")
+else:
+    print("このシステムはカオスではありません。")
+
+# フーリエ変換による周波数解析
+frequencies = np.fft.fftfreq(len(x_values), d=t_eval[1] - t_eval[0])
+fft_values = np.fft.fft(x_values)
+
+# フーリエ変換の結果を可視化
+plt.figure(figsize=(10, 6))
+plt.plot(frequencies, np.abs(fft_values))
+plt.title('フーリエ変換による周波数解析 (X軸)')
+plt.xlabel('周波数')
+plt.ylabel('振幅')
+plt.grid(True)
+plt.show()
