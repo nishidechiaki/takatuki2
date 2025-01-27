@@ -1,0 +1,154 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Payne-Whithamモデル
+def pw_model(r, x0, n_iter):
+    """
+    PWモデルを生成する関数
+    Parameters:
+        r: パラメータ (成長率)
+        x0: 初期値
+        n_iter: 反復回数
+    Returns:
+        xs: 生成された軌道
+    """
+    xs = [x0]
+    for _ in range(n_iter):
+        xs.append(xs[-1] + r * (1 - xs[-1]**2))
+    return np.array(xs)
+
+# EWS指標を計算
+def ews_indicators_pw(r_values, x0, n_iter, last_n=100):
+    """
+    EWS指標を計算する関数
+    Parameters:
+        r_values: rの値の範囲
+        x0: 初期値
+        n_iter: 反復回数
+        last_n: 最後のステップ数を用いて計算
+    Returns:
+        results_df: 分散、自己相関の表
+    """
+    data = {
+        "r": [],
+        "Variance": [],
+        "Autocorrelation": [],
+        "Relaxation Speed": []
+    }
+
+    for r in r_values:
+        xs = pw_model(r, x0, n_iter)[-last_n:]  # 最後のステップを使用
+
+        # 分散
+        var = np.var(xs)
+
+        # 自己相関
+        if len(xs) > 1:
+            autocorr = np.corrcoef(xs[:-1], xs[1:])[0, 1]  # 1ステップ前との相関
+        else:
+            autocorr = 0
+
+        # 緩和速度: 平均的な収束速度を計算
+        relaxation = np.mean(np.abs(xs[1:] - xs[:-1]))
+
+        # データ追加
+        data["r"].append(r)
+        data["Variance"].append(var)
+        data["Autocorrelation"].append(autocorr)
+        data["Relaxation Speed"].append(relaxation)
+
+    # DataFrameに変換
+    results_df = pd.DataFrame(data)
+    return results_df
+
+# クモの巣図をプロット
+def plot_pw_cobweb(r, x0, n_iter):
+    """
+    クモの巣図をプロットする関数
+    """
+    xs = pw_model(r, x0, n_iter)
+    x = np.linspace(-2, 2, 500)
+    f_x = x + r * (1 - x**2)
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(x, f_x, label=f'PW Model: r={r}', color="blue")
+    plt.plot(x, x, label='y=x', color="gray", linestyle="--")
+    for i in range(n_iter - 1):
+        plt.plot([xs[i], xs[i]], [xs[i], xs[i + 1]], color="red", alpha=0.6)
+        plt.plot([xs[i], xs[i + 1]], [xs[i + 1], xs[i + 1]], color="red", alpha=0.6)
+    plt.scatter(xs[:20], xs[:20], color="black", s=10, label="Orbit (First 20 points)")
+    plt.xlabel("x_n")
+    plt.ylabel("x_n+1")
+    plt.legend()
+    plt.grid(alpha=0.4)
+    plt.title(f"Cobweb Diagram for r={r}")
+    plt.show()
+
+# EWS指標とクモの巣図の表示
+def plot_ews_and_cobweb(r_values, x0, n_iter, last_n):
+    """
+    EWS指標とクモの巣図をプロットする関数
+    """
+    results_df = ews_indicators_pw(r_values, x0, n_iter, last_n)
+
+    # 表を画像として保存
+    fig, ax = plt.subplots(figsize=(10, 4))  # 表用の画像サイズを設定
+    ax.axis('tight')
+    ax.axis('off')
+    table = ax.table(cellText=results_df.round(4).values, 
+                     colLabels=results_df.columns, 
+                     cellLoc='center', 
+                     loc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.auto_set_column_width(col=list(range(len(results_df.columns))))
+    plt.savefig("ews_table_pw.png", dpi=300, bbox_inches='tight')
+    plt.close()  # 表の描画を終了
+
+    # EWSプロット
+    plt.figure(figsize=(12, 8))
+
+    # 分散のプロット
+    plt.subplot(3, 1, 1)
+    plt.plot(results_df["r"], results_df["Variance"], label="Variance", color="red")
+    plt.title("EWS: Variance", fontsize=14)
+    plt.xlabel("Growth Rate (r)", fontsize=12)
+    plt.ylabel("Variance", fontsize=12)
+    plt.grid(alpha=0.4)
+
+    # 自己相関のプロット
+    plt.subplot(3, 1, 2)
+    plt.plot(results_df["r"], results_df["Autocorrelation"], label="Autocorrelation", color="green")
+    plt.title("EWS: Autocorrelation", fontsize=14)
+    plt.xlabel("Growth Rate (r)", fontsize=12)
+    plt.ylabel("Autocorrelation", fontsize=12)
+    plt.grid(alpha=0.4)
+
+    # 緩和速度のプロット
+    plt.subplot(3, 1, 3)
+    plt.plot(results_df["r"], results_df["Relaxation Speed"], label="Relaxation Speed", color="blue")
+    plt.title("EWS: Relaxation Speed", fontsize=14)
+    plt.xlabel("Growth Rate (r)", fontsize=12)
+    plt.ylabel("Relaxation Speed", fontsize=12)
+    plt.grid(alpha=0.4)
+
+    plt.tight_layout()
+    plt.show()
+
+    # 表の画像を表示
+    from PIL import Image
+    from IPython.display import display
+    table_image = Image.open("ews_table_pw.png")
+    display(table_image)
+
+# 実行例
+r_values = np.linspace(0.1, 1.5, 20)  # rを変化させる範囲
+x0 = 0.1  # 初期値
+n_iter = 500  # 反復回数
+last_n = 100  # 最後のステップ数
+
+plot_ews_and_cobweb(r_values, x0, n_iter, last_n)
+
+# クモの巣図のプロット例 (任意のrで)
+plot_pw_cobweb(r=0.9, x0=x0, n_iter=100)
