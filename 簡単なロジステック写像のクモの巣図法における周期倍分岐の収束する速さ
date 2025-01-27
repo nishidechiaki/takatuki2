@@ -1,0 +1,32 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def logistic_map(x, r):
+    return r * x * (1 - x)
+
+def cobweb_convergence_speed(r_values, iterations=100, eta=1e-10):
+    convergence_speeds = []
+    for r in r_values:
+        x = 0.5  # Initial condition
+        speeds = []
+        for _ in range(iterations):
+            x_next = logistic_map(x, r)
+            speed = abs((x_next - x) / eta)
+            speeds.append(speed)
+            x = x_next
+        convergence_speeds.append(speeds[-1])  # Take the final speed as the convergence speed
+    return convergence_speeds
+
+def plot_convergence_speed(r_values, convergence_speeds):
+    plt.figure(figsize=(10, 6))
+    plt.plot(r_values, convergence_speeds, label="Convergence Speed", color="blue")
+    plt.xlabel("r")
+    plt.ylabel("Convergence Speed")
+    plt.title("Convergence Speed of Logistic Map at Period-Doubling Bifurcations")
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+r_values = np.linspace(2.5, 4.0, 500)
+convergence_speeds = cobweb_convergence_speed(r_values)
+plot_convergence_speed(r_values, convergence_speeds)
