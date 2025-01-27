@@ -1,0 +1,119 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def ricker_model(r, K, x0, n_iter):
+    """
+    Rickerモデルの軌道を生成する関数
+    Parameters:
+        r: 内部成長率
+        K: 環境収容力
+        x0: 初期値
+        n_iter: 反復回数
+    Returns:
+        xs: 生成された軌道
+    """
+    xs = [x0]
+    for _ in range(n_iter):
+        x_next = xs[-1] * np.exp(r * (1 - xs[-1] / K))
+        xs.append(x_next)
+    return np.array(xs)
+
+def plot_cobweb_ricker(r, K, x0, n_iter):
+    """
+    Rickerモデルのクモの巣図を描画する関数
+    Parameters:
+        r, K: Rickerモデルのパラメータ
+        x0: 初期値
+        n_iter: 反復回数
+    """
+    xs = ricker_model(r, K, x0, n_iter)
+    plt.figure(figsize=(10, 8))
+    plt.title(f"Cobweb Plot for Ricker Model (r={r}, K={K})", fontsize=14)
+    plt.xlabel("$x_n$", fontsize=12)
+    plt.ylabel("$x_{n+1}$", fontsize=12)
+
+    # 対角線 (y = x)
+    x_vals = np.linspace(0, K * 1.2, 500)
+    y_vals = x_vals * np.exp(r * (1 - x_vals / K))
+    plt.plot(x_vals, x_vals, 'k--', label="$y=x$")
+    plt.plot(x_vals, y_vals, 'g-', label="Ricker Map")
+
+    # クモの巣の描画
+    for i in range(n_iter - 1):
+        plt.plot([xs[i], xs[i]], [xs[i], xs[i + 1]], 'b-', lw=0.5)
+        plt.plot([xs[i], xs[i + 1]], [xs[i + 1], xs[i + 1]], 'b-', lw=0.5)
+
+    plt.legend()
+    plt.grid(alpha=0.4)
+    plt.show()
+
+def plot_time_series_ricker(r, K, x0, n_iter):
+    """
+    Rickerモデルの時系列データをプロットする関数
+    Parameters:
+        r, K: Rickerモデルのパラメータ
+        x0: 初期値
+        n_iter: 反復回数
+    """
+    xs = ricker_model(r, K, x0, n_iter)
+    plt.figure(figsize=(10, 6))
+    plt.plot(xs, label=f"Time Series (r={r}, K={K})", color="blue")
+    plt.title("Time Series for Ricker Model", fontsize=14)
+    plt.xlabel("Iterations", fontsize=12)
+    plt.ylabel("Population ($x$)", fontsize=12)
+    plt.legend()
+    plt.grid(alpha=0.4)
+    plt.show()
+
+def ews_analysis_ricker(r_values, K, x0, n_iter):
+    """
+    EWS解析: パラメータrを変化させた際の分散・自己相関の変化を観察
+    Parameters:
+        r_values: rの値の範囲
+        K: 環境収容力
+        x0: 初期値
+        n_iter: 反復回数
+    """
+    variances = []
+    autocorrelations = []
+
+    for r in r_values:
+        xs = ricker_model(r, K, x0, n_iter)[-100:]  # 最後の100ステップを使用
+        variances.append(np.var(xs))
+        autocorrelations.append(np.corrcoef(xs[:-1], xs[1:])[0, 1])  # 自己相関
+
+    # 分散のプロット
+    plt.figure(figsize=(10, 6))
+    plt.plot(r_values, variances, label="Variance", color="red")
+    plt.title("EWS Analysis: Variance vs. Growth Rate (r)", fontsize=14)
+    plt.xlabel("Growth Rate (r)", fontsize=12)
+    plt.ylabel("Variance", fontsize=12)
+    plt.grid(alpha=0.4)
+    plt.legend()
+    plt.show()
+
+    # 自己相関のプロット
+    plt.figure(figsize=(10, 6))
+    plt.plot(r_values, autocorrelations, label="Autocorrelation", color="green")
+    plt.title("EWS Analysis: Autocorrelation vs. Growth Rate (r)", fontsize=14)
+    plt.xlabel("Growth Rate (r)", fontsize=12)
+    plt.ylabel("Autocorrelation", fontsize=12)
+    plt.grid(alpha=0.4)
+    plt.legend()
+    plt.show()
+
+# パラメータ設定
+r = 2.0  # 内部成長率
+K = 10.0  # 環境収容力
+x0 = 0.1  # 初期値
+n_iter = 500
+
+# 1. クモの巣図
+plot_cobweb_ricker(r, K, x0, 100)
+
+# 2. 時系列データ
+plot_time_series_ricker(r, K, x0, n_iter)
+
+# 3. EWS解析
+r_values = np.linspace(0.1, 4.0, 100)  # rを変化させる範囲
+ews_analysis_ricker(r_values, K, x0, n_iter)
