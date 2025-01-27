@@ -1,0 +1,135 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def henon_map(a, b, x0, y0, n_iter):
+    """
+    Hénon写像を生成する関数
+    Parameters:
+        a, b: Hénon写像のパラメータ
+        x0, y0: 初期条件
+        n_iter: 反復回数
+    Returns:
+        xs, ys: 生成された軌道
+    """
+    xs = [x0]
+    ys = [y0]
+    for _ in range(n_iter):
+        x_next = 1 - a * xs[-1]**2 + ys[-1]
+        y_next = b * xs[-1]
+        xs.append(x_next)
+        ys.append(y_next)
+    return np.array(xs), np.array(ys)
+
+def plot_cobweb(a, b, x0, y0, n_iter):
+    """
+    クモの巣図を描画する関数
+    Parameters:
+        a, b: Hénon写像のパラメータ
+        x0, y0: 初期条件
+        n_iter: 反復回数
+    """
+    xs, ys = henon_map(a, b, x0, y0, n_iter)
+    plt.figure(figsize=(10, 8))
+    plt.title(f"Cobweb Plot for Hénon Map (a={a}, b={b})", fontsize=14)
+    plt.xlabel("$x_n$", fontsize=12)
+    plt.ylabel("$x_{n+1}$", fontsize=12)
+
+    # 対角線 (y = x)
+    x_vals = np.linspace(min(xs), max(xs), 500)
+    plt.plot(x_vals, x_vals, 'k--', label="$y=x$")
+
+    # 軌道のステップ描画
+    for i in range(len(xs) - 1):
+        plt.plot([xs[i], xs[i]], [xs[i], xs[i + 1]], 'b-', lw=0.5)
+        plt.plot([xs[i], xs[i + 1]], [xs[i + 1], xs[i + 1]], 'b-', lw=0.5)
+
+    plt.legend()
+    plt.grid(alpha=0.4)
+    plt.show()
+
+def plot_poincare_section(a, b, x0, y0, n_iter):
+    """
+    Poincaré切片を描画する関数
+    Parameters:
+        a, b: Hénon写像のパラメータ
+        x0, y0: 初期条件
+        n_iter: 反復回数
+    """
+    xs, ys = henon_map(a, b, x0, y0, n_iter)
+    plt.figure(figsize=(8, 6))
+    plt.scatter(xs, ys, s=1, c="blue", alpha=0.5)
+    plt.title(f"Poincaré Section for Hénon Map (a={a}, b={b})", fontsize=14)
+    plt.xlabel("$x$", fontsize=12)
+    plt.ylabel("$y$", fontsize=12)
+    plt.grid(alpha=0.4)
+    plt.show()
+
+def lyapunov_exponent(a, b, x0, y0, n_iter):
+    """
+    Lyapunov指数を計算してプロットする関数
+    Parameters:
+        a, b: Hénon写像のパラメータ
+        x0, y0: 初期条件
+        n_iter: 反復回数
+    """
+    xs, ys = henon_map(a, b, x0, y0, n_iter)
+    divergence = []
+    delta = 1e-6  # 微小なずれ
+    for i in range(len(xs) - 1):
+        x_prime = xs[i] + delta
+        y_prime = ys[i]
+        x_next = 1 - a * x_prime**2 + y_prime
+        y_next = b * x_prime
+        dist = np.sqrt((xs[i + 1] - x_next)**2 + (ys[i + 1] - y_next)**2)
+        divergence.append(np.log(abs(dist / delta)))
+    lyapunov = np.cumsum(divergence) / np.arange(1, len(divergence) + 1)
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(lyapunov, label="Lyapunov Exponent", color="red")
+    plt.title(f"Lyapunov Exponent for Hénon Map (a={a}, b={b})", fontsize=14)
+    plt.xlabel("Iterations", fontsize=12)
+    plt.ylabel("Lyapunov Exponent", fontsize=12)
+    plt.legend()
+    plt.grid(alpha=0.4)
+    plt.show()
+
+def ews_analysis(a_range, b, x0, y0, n_iter):
+    """
+    EWS解析: パラメータaを変化させた際のカオスへの移行を観察
+    Parameters:
+        a_range: aの値の範囲
+        b: 固定されたbの値
+        x0, y0: 初期条件
+        n_iter: 反復回数
+    """
+    final_values = []
+    for a in a_range:
+        xs, _ = henon_map(a, b, x0, y0, n_iter)
+        final_values.append(xs[-100:])  # 最後の100ステップを取得
+
+    plt.figure(figsize=(10, 8))
+    for i, a in enumerate(a_range):
+        plt.scatter([a] * len(final_values[i]), final_values[i], s=1, color="blue", alpha=0.5)
+    plt.title("EWS Analysis: Chaos Transition (Hénon Map)", fontsize=14)
+    plt.xlabel("Parameter a", fontsize=12)
+    plt.ylabel("$x$", fontsize=12)
+    plt.grid(alpha=0.4)
+    plt.show()
+
+# パラメータ
+a, b = 1.4, 0.3
+x0, y0 = 0.1, 0.1
+n_iter = 10000
+
+# 1. クモの巣図
+plot_cobweb(a, b, x0, y0, 500)
+
+# 2. Poincaré切片
+plot_poincare_section(a, b, x0, y0, n_iter)
+
+# 3. Lyapunov指数
+lyapunov_exponent(a, b, x0, y0, 1000)
+
+# 4. EWS解析
+a_range = np.linspace(1.0, 1.5, 200)  # aの範囲
+ews_analysis(a_range, b, x0, y0, 5000)
