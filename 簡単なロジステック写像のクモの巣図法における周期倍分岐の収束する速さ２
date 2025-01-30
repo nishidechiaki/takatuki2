@@ -1,0 +1,45 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def logistic_map(x, r):
+    return r * x * (1 - x)
+
+def detect_convergence(r, x0=0.1, max_iterations=1000):
+    values = [x0]
+    for _ in range(max_iterations):
+        values.append(logistic_map(values[-1], r))
+    
+    # 収束周期の判定
+    if 2.4 <= r <= 3.0:
+        period = 1
+    elif 3.0 < r <= 3.448:
+        period = 2
+    elif 3.449 <= r <= 3.5425:
+        period = 4
+    elif 3.5423 <= r <= 3.56:
+        period = 8
+    elif 3.57 <= r <= 3.567:
+        period = 16
+    else:
+        return max_iterations  # 収束しなかった場合
+    
+    # 収束時間の計測
+    for i in range(max_iterations - period):
+        if abs(values[i] - values[i + period]) < 1e-6:
+            return i  # 収束にかかった反復回数
+    return max_iterations  # 収束しなかった場合
+
+# rの範囲
+r_values = np.linspace(2.4, 3.567, 500)
+convergence_times = [detect_convergence(r) for r in r_values]
+
+# プロット
+plt.figure(figsize=(10, 5))
+plt.plot(r_values, convergence_times, color='blue', label='Convergence Time')
+plt.xlabel("r", fontsize=16, fontweight='bold')
+plt.ylabel("Convergence Time", fontsize=14)
+plt.xticks(fontsize=14, fontweight='bold')
+plt.yticks(fontsize=12)
+plt.legend()
+plt.grid()
+plt.show()
