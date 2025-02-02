@@ -1,0 +1,85 @@
+# Adjusting the handling of fixed points to avoid issues with `np.isnan`
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Henon map parameters
+b = 0.3
+a_values = np.linspace(0.8, 1.042, 200)  # Range for a values
+max_iterations = 1000
+min_iterations = 100
+tolerance = 1e-8
+
+lambda_values = []
+a_list = []
+
+# Henon map function
+def henon_map(a, b, x, y):
+    x_next = 1 - a * x**2 + y
+    y_next = b * x
+    return x_next, y_next
+
+# Fixed point for Henon map (using the formula in the provided image)
+def fixed_point(a, b):
+    discriminant = (b + 1) ** 2 - 4 * a
+    if discriminant < 0:
+        return None  # No real solutions
+
+    sqrt_term = np.sqrt(discriminant)
+    x_star1 = ((b + 1) + sqrt_term) / (2 * a)
+    x_star2 = ((b + 1) - sqrt_term) / (2 * a)
+
+    y_star1 = b * x_star1
+    y_star2 = b * x_star2
+
+    return (x_star1, y_star1), (x_star2, y_star2)
+
+for a in a_values:
+    x, y = 0.1, 0.1  # Initial condition
+    trajectory_x = []
+    iterations = max_iterations
+
+    for i in range(iterations):
+        x, y = henon_map(a, b, x, y)
+        trajectory_x.append(x)
+        
+        if i > min_iterations and abs(trajectory_x[-1] - trajectory_x[-2]) < tolerance:
+            iterations = i + 1
+            break
+
+    trajectory_x = np.array(trajectory_x[-10:])
+
+    if 0.8 < a <= 0.9:
+        period = 1
+    elif 0.92 < a <= 1.0:
+        period = 2
+    elif 1.02 < a <= 1.042:
+        period = 4
+    else:
+        period = None  # Undefined behavior
+
+    fixed_points = fixed_point(a, b)
+    
+    if period is None or fixed_points is None:
+        lambda_value = np.nan
+    else:
+        x_star = fixed_points[0][0]  # Choosing one of the fixed points
+        x_n = trajectory_x[-period]
+        x_n_plus_p = trajectory_x[-1]
+
+        denominator = x_n - x_star
+        if abs(denominator) < tolerance:
+            lambda_value = np.nan
+        else:
+            lambda_value = np.abs((x_n_plus_p - x_star) / denominator) ** (1 / period)
+
+    lambda_values.append(lambda_value)
+    a_list.append(a)
+
+# Plot convergence rate λ
+plt.figure(figsize=(8, 6))
+plt.plot(a_list, lambda_values, marker='o', linestyle='', markersize=3)
+plt.xlabel("a")
+plt.ylabel("\u03bb")
+plt.grid(True)
+plt.show()
