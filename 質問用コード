@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def logistic_map(x, r):
+    return r * x * (1 - x)
+
+def compute_lambda(r, x0=0.1, max_iterations=1000):
+    values = [x0]
+    for _ in range(max_iterations):
+        values.append(logistic_map(values[-1], r))
+    
+    # 最終的な安定点を推定
+    x_star = values[-1]
+    
+    # λ の計算
+    numerator = logistic_map(x_star, r) - (1 - r) / r
+    denominator = x_star - (1 - r) / r
+    
+    if abs(denominator) < 1e-6:
+        return np.nan  # 発散を示す
+    
+    return abs(numerator / denominator)
+
+# rの範囲
+r_values = np.linspace(2.4, 3.567, 500)
+lambda_values = [compute_lambda(r) for r in r_values]
+
+# プロット
+plt.figure(figsize=(10, 5))
+plt.plot(r_values, lambda_values, color='red', label='|λ*(r)|')
+plt.xlabel("r")
+plt.ylabel("|λ*(r)|")
+plt.title("Absolute Value of Stability Multiplier in Logistic Map")
+plt.legend()
+plt.grid()
+plt.show()
