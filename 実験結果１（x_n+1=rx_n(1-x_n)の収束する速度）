@@ -26,22 +26,26 @@ for r in r_values:
     trajectory = np.array(trajectory[-10:])
 
     if r < 3.0:
-        a = 1
+        x_star = (r-1) / r
+        lambda_value = r - 2
     elif 3.0 <= r < 3.448:
+        sqrt_term = np.sqrt((r - 3) * (r + 1))
+        x_star_plus = (r + 1 + sqrt_term) / (2 * r)
+        x_star_minus = (r + 1 - sqrt_term) / (2 * r)
+        x_star = x_star_plus  
         a = 2
+        x_n = trajectory[-a]
+        x_n_plus_a = trajectory[-1]
+        denominator = x_n - x_star
+        lambda_value = np.nan if abs(denominator) < tolerance else np.abs((x_n_plus_a - x_star) / denominator) ** (1 / 2)
     else:
+        x_star = (r-1) / r
         a = 4
-
-    x_star = (1 - r) / r
-    x_n = trajectory[-a]
-    x_n_plus_a = trajectory[-1]
-
-    denominator = x_n - x_star
-    if abs(denominator) < tolerance:
-        lambda_value = np.nan
-    else:
-        lambda_value = np.abs((x_n_plus_a - x_star) / denominator) ** (1 / 2)
-
+        x_n = trajectory[-a]
+        x_n_plus_a = trajectory[-1]
+        denominator = x_n - x_star
+        lambda_value = np.nan if abs(denominator) < tolerance else np.abs((x_n_plus_a - x_star) / denominator) ** (1 / 2)
+    
     lambda_values.append(lambda_value)
     r_list.append(r)
 
@@ -49,6 +53,5 @@ plt.figure(figsize=(8, 6))
 plt.plot(r_list, lambda_values, marker='o', linestyle='', markersize=3)
 plt.xlabel("r")
 plt.ylabel("\u03bb")
-#plt.title("収束速度 \u03bb の変化")
 plt.grid(True)
 plt.show()
