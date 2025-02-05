@@ -44,7 +44,7 @@ for r in r_values:
         x_n = trajectory[-a]
         x_n_plus_a = trajectory[-1]
         denominator = x_n - x_star
-        lambda_value = np.nan if abs(denominator) < tolerance else np.abs((x_n_plus_a - x_star) / denominator) ** (1 / 2)
+        lambda_value = np.nan if abs(denominator) < tolerance else np.abs((x_n_plus_a - x_star) / denominator) ** (1 / 4)
     
     lambda_values.append(lambda_value)
     r_list.append(r)
