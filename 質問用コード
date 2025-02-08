@@ -1,54 +1,47 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import fsolve
 
-x0 = 0.5
-r_values = np.linspace(2.4, 3.45, 200)
-max_iterations = 1000
-min_iterations = 100
-tolerance = 1e-8
+def logistic_map(x, r):
+    return r * x * (1 - x)
 
-lambda_values = []
-r_list = []
+def logistic_map_4(x, r):
+    x1 = logistic_map(x, r)
+    x2 = logistic_map(x1, r)
+    x3 = logistic_map(x2, r)
+    x4 = logistic_map(x3, r)
+    return x4
 
-for r in r_values:
-    x = x0
-    trajectory = []
-    iterations = max_iterations
+def logistic_map_4_derivative(x, r):
+    h = 1e-6
+    return (logistic_map_4(x + h, r) - logistic_map_4(x - h, r)) / (2 * h)
 
-    for i in range(iterations):
-        x = r * x * (1 - x)
-        trajectory.append(x)
-        
-        if i > min_iterations and abs(trajectory[-1] - trajectory[-2]) < tolerance:
-            iterations = i + 1
-            break
+def find_fixed_points(r):
+    func = lambda x: logistic_map_4(x, r) - x
+    initial_guesses = np.linspace(0, 1, 10)
+    solutions = []
+    
+    for guess in initial_guesses:
+        sol = fsolve(func, guess)[0]
+        if 0 <= sol <= 1 and not any(np.isclose(sol, s, atol=1e-6) for s in solutions):
+            derivative = logistic_map_4_derivative(sol, r)
+            if abs(derivative) > 1:
+                solutions.append(sol)
+    
+    return sorted(solutions)
 
-    trajectory = np.array(trajectory[-10:])
+r = 3.5
+unstable_fixed_points = find_fixed_points(r)
+print(f"r = {r} のときの|f^4'(x)| > 1 となる4周期固定点: {unstable_fixed_points}")
 
-    if r < 3.0:
-        a = 1
-    elif 3.0 <= r < 3.448:
-        a = 2
-    else:
-        a = 4
-
-    x_star = (r-1) / r
-    x_n = trajectory[-a]
-    x_n_plus_a = trajectory[-1]
-
-    denominator = x_n - x_star
-    if abs(denominator) < tolerance:
-        lambda_value = np.nan
-    else:
-        lambda_value = np.abs((x_n_plus_a - x_star) / denominator) ** (1 / 2)
-
-    lambda_values.append(lambda_value)
-    r_list.append(r)
+x_vals = np.linspace(0, 1, 1000)
+y_vals = [logistic_map_4(x, r) for x in x_vals]
 
 plt.figure(figsize=(8, 6))
-plt.plot(r_list, lambda_values, marker='o', linestyle='', markersize=3)
-plt.xlabel("r")
-plt.ylabel("\u03bb")
-#plt.title("収束速度 \u03bb の変化")
-plt.grid(True)
+plt.plot(x_vals, y_vals, label="$f^4(x)$")
+plt.plot(x_vals, x_vals, linestyle='dashed', color='gray')
+plt.scatter(unstable_fixed_points, unstable_fixed_points, color='red')
+plt.xlabel("x")
+plt.ylabel("y")
+plt.grid()
 plt.show()
