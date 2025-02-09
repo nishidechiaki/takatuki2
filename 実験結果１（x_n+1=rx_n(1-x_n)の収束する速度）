@@ -2,9 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 x0 = 0.1
-r_values = np.linspace(2.4, 3.45, 200)
+r_values = np.linspace(2.4, 3.448, 200)
 max_iterations = 1000
-min_iterations = 100
 tolerance = 1e-8
 
 lambda_values = []
@@ -19,8 +18,8 @@ for r in r_values:
         x = r * x * (1 - x)
         trajectory.append(x)
         x_n =  r * x * (1 - x) 
-        x_next=r * x_n * (1 - x_n)
-        if i > min_iterations and abs(x_n - x_next) < tolerance:
+        x_next = r * x_n * (1 - x_n)
+        if abs(x_n - x_next) < tolerance:
             iterations = i + 1
             break
 
@@ -29,7 +28,7 @@ for r in r_values:
     if r < 3.0:
         x_star = (r - 1) / r
         x_n =  r * x * (1 - x) 
-        x_next=r * x_n * (1 - x_n)
+        x_next = r * x_n * (1 - x_n)
         x_n_plus_1 = x_next 
         denominator = x_n - x_star
         lambda_value = np.nan if abs(denominator) < tolerance else (x_n_plus_1 - x_star) / denominator
@@ -44,17 +43,6 @@ for r in r_values:
         x_n_plus_2 = x_next2 
         denominator = x_n - x_star
         lambda_value = np.nan if abs(denominator) < tolerance else np.abs((x_n_plus_2 - x_star) / denominator) ** (1 / 2)
-
-    else:
-        x_star = (r-1) / r
-        x_n =  r * x * (1 - x) 
-        x_next=r * x_n * (1 - x_n)
-        x_next2=r * x_next * (1 - x_next)
-        x_next3= r * x_next2 * (1 - x_next2)
-        x_next4= r * x_next3 * (1 - x_next3)
-        x_n_plus_4 = x_next4
-        denominator = x_n - x_star
-        lambda_value = np.nan if abs(denominator) < tolerance else np.abs((x_n_plus_4 - x_star) / denominator) ** (1 / 4)
     
     lambda_values.append(lambda_value)
     r_list.append(r)
@@ -63,6 +51,5 @@ plt.figure(figsize=(8, 6))
 plt.plot(r_list, lambda_values, marker='o', linestyle='', markersize=3)
 plt.xlabel("r")
 plt.ylabel("\u03bb")
-#plt.ylim(0,100)
 plt.grid(True)
 plt.show()
