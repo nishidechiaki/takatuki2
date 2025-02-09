@@ -13,50 +13,59 @@ r_list = []
 # r < 3.0 の計算
 for r in r_values1:
     x_n = x0
+    iterations = max_iterations
     
-    for _ in range(max_iterations):
+    for i in range(iterations):
         x_next = r * x_n * (1 - x_n)
-        if abs(x_next - x_n) < tolerance:
+        x_n_next = r * x_next * (1 - x_next)
+        
+        if abs(x_n - x_next) < tolerance :
+            iterations = i + 1
             break
+        
         x_n = x_next
-
+    
     x_star = (r - 1) / r
-    denominator = x_n - x_star + tolerance  
-    lambda_value = (r * x_n * (1 - x_n) - x_star) / denominator
-
+    x_next = r * x_n * (1 - x_n)
+    x_n_plus_1 = x_next
+    denominator = x_n - x_star
+    lambda_value = np.nan if abs(denominator) < tolerance else (x_n_plus_1 - x_star) / denominator
+    
     lambda_values.append(lambda_value)
     r_list.append(r)
 
 # 3.0 <= r < 3.448 の計算
 for r in r_values2:
     x_n = x0
+    iterations = max_iterations
     
-    for _ in range(max_iterations):
+    for i in range(iterations):
         x_next = r * x_n * (1 - x_n)
-        if abs(x_next - x_n) < tolerance:
+        x_n_next = r * x_next * (1 - x_next)
+        
+        if abs(x_n_next - x_n) < tolerance:
+            iterations = i + 1
             break
-        x_n = x_next
-
-    sqrt_term = np.sqrt((r - 3) * (r + 1)) if r >= 3 else 0
+        
+        x_n = x_n_next
+    
+    sqrt_term = np.sqrt((r - 3) * (r + 1))
     x_star_plus = (r + 1 + sqrt_term) / (2 * r)
     x_star_minus = (r + 1 - sqrt_term) / (2 * r)
     x_star = x_star_plus if abs(x_n - x_star_plus) < abs(x_n - x_star_minus) else x_star_minus  
-
-    denominator = x_n - x_star + tolerance  
-    lambda_value = np.abs((r * x_n * (1 - x_n) - x_star) / denominator) ** (1 / 2)
-
+    x_next = r * x_n * (1 - x_n)
+    x_n_next = r * x_next * (1 - x_next)
+    x_n_plus_2 = x_n_next
+    denominator = x_n - x_star
+    lambda_value = np.nan if abs(denominator) < tolerance else np.abs((x_n_next - x_star) / denominator) ** (1 / 2)
+    
     lambda_values.append(lambda_value)
     r_list.append(r)
 
-
-r_list = np.array(r_list)
-lambda_values = np.array(lambda_values)
-valid_indices = ~np.isnan(lambda_values)
-
 plt.figure(figsize=(8, 6))
-plt.plot(r_list[valid_indices], lambda_values[valid_indices], marker='o', linestyle='', markersize=3)
+plt.plot(r_list, lambda_values, marker='o', linestyle='', markersize=3)
 plt.xlabel("r")
 plt.ylabel("\u03bb")
-plt.xlim(2.4, 3.448)
+plt.xlim(2.4,3.448)
 plt.grid(True)
 plt.show()
