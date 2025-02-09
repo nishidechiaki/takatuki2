@@ -13,14 +13,11 @@ r_smooth = np.linspace(r_values.min(), r_values.max(), 300)
 spl = make_interp_spline(r_values, lambda_values, k=3)  # Cubic spline
 lambda_smooth = spl(r_smooth)
 
-# Plot the data points and the smooth curve
+# Plot the smooth curve
 plt.figure(figsize=(8, 5))
-plt.plot(r_smooth, lambda_smooth, label="Smooth Curve", color='b')
-plt.scatter(r_values, lambda_values, color='r', label="Given Points", zorder=3)
+plt.plot(r_smooth, lambda_smooth, color='b')  # Smooth curve
 plt.xlabel("r")
 plt.ylabel("λ")
-plt.title("Smooth Curve Connecting Given Points")
-plt.legend()
 plt.grid(True)
 
 # Show the plot
