@@ -1,0 +1,19 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+r1 = np.linspace(2.4, 3.0, 100)
+r2 = np.linspace(3.0, 3.448, 100)
+
+y1 = np.abs(-r1 + 2)
+y2 = np.abs(-r2**2 + 2*r2 + 4)
+
+plt.figure(figsize=(8, 6))
+plt.plot(r1, y1, color='b')
+plt.plot(r2, y2, color='r')
+
+plt.xlabel('r')
+plt.ylabel('y')
+plt.axvline(x=3.0, color='k', linestyle='--', linewidth=1)
+plt.legend()
+plt.grid()
+plt.show()
