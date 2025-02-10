@@ -5,7 +5,7 @@ r1 = np.linspace(2.4, 3.0, 100)
 r2 = np.linspace(3.0, 3.448, 100)
 
 y1 = np.abs(-r1 + 2)
-y2 = np.abs(-r2**2 + 2*r2 + 4)
+y2 = np.abs(-r2**2 + 2*r2 + 4)**(1/2)
 
 plt.figure(figsize=(8, 6))
 plt.plot(r1, y1, color='b')
