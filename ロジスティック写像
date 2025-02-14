@@ -1,0 +1,34 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def logistic_map(x, r):
+    return r * x * (1 - x)
+
+def compute_bifurcation(r_min=2.5, r_max=4.0, r_steps=1000, n_transients=500, n_iterations=500):
+    r_values = np.linspace(r_min, r_max, r_steps)
+    x_values = np.zeros((r_steps, n_iterations))
+    
+    for i, r in enumerate(r_values):
+        x = 0.5  # 初期値
+        for _ in range(n_transients):
+            x = logistic_map(x, r)  # 過渡状態を捨てる
+        
+        for j in range(n_iterations):
+            x = logistic_map(x, r)
+            x_values[i, j] = x
+    
+    return r_values, x_values
+
+def plot_bifurcation_diagram(r_values, x_values):
+    plt.figure(figsize=(10, 6))
+    for i in range(len(r_values)):
+        plt.plot([r_values[i]] * len(x_values[i]), x_values[i], ',k', alpha=0.25)
+    
+    plt.xlabel("r")
+    plt.ylabel("x")
+    plt.title("Bifurcation Diagram of the Logistic Map")
+    plt.show()
+
+# 計算とプロット
+r_values, x_values = compute_bifurcation()
+plot_bifurcation_diagram(r_values, x_values)
