@@ -1,0 +1,50 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import fsolve
+
+# Define logistic map function
+def logistic_map(x, r):
+    return r * x * (1 - x)
+
+# Define the fourth iterate f^4(x)
+def logistic_map_4(x, r):
+    return logistic_map(logistic_map(logistic_map(logistic_map(x, r), r), r), r)
+
+# Define x values
+x = np.linspace(0, 1, 1000)
+
+# Define parameter r
+r = 3.5  # Example value in the chaotic regime
+
+# Create plot
+plt.figure(figsize=(5, 5))
+
+# Plot f^4(x) as a solid line
+plt.plot(x, logistic_map_4(x, r), color='black')
+
+# Plot the diagonal line y = x
+plt.plot(x, x, linestyle="-", color="black")
+
+# Find fixed points numerically
+fixed_point = fsolve(lambda x: logistic_map(x, r) - x, 0.5)[0]
+
+# Find period-4 points numerically
+period_4_function = lambda x: logistic_map_4(x, r) - x
+period_4_points = fsolve(period_4_function, np.linspace(0, 1, 4))
+
+# Mark the fixed point (r-1)/r with a black dot
+black_dot = (r - 1) / r
+plt.scatter([black_dot], [black_dot], color='black', s=100)
+plt.text(black_dot, black_dot, '$x^*$', verticalalignment='bottom', fontsize=12)
+
+# Mark other intersection points with white dots
+for p in period_4_points:
+    if not np.isclose(p, black_dot, atol=1e-2):  # Exclude the black dot point
+        plt.scatter([p], [p], color='white', edgecolor='black', s=100)
+
+# Labels and limits
+plt.xlabel("$x_n$")
+plt.ylabel("$f^4(x) = x_{n+4}$")
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+plt.show()
