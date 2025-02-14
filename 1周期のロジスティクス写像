@@ -1,0 +1,38 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define logistic map function
+def logistic_map(x, r):
+    return r * x * (1 - x)
+
+# Define x values
+x = np.linspace(0, 1, 100)
+
+# Define different r values
+r_values = [0.8, 1.0, 3.0]
+labels = ["r<1", "r=1", "r>1"]
+colors = ["blue", "green", "red"]
+
+# Create plot
+plt.figure(figsize=(5, 5))
+
+# Plot logistic maps for different r values
+for r, label, color in zip(r_values, labels, colors):
+    plt.plot(x, logistic_map(x, r), label=label, color=color)
+
+# Plot the diagonal line x_{n+1} = x_n
+plt.plot(x, x, linestyle="-", color="black")
+
+# Mark the fixed point for r > 1
+x_fixed = (r_values[-1] - 1) / r_values[-1]  # Fixed point x*
+y_fixed = logistic_map(x_fixed, r_values[-1])
+plt.scatter([x_fixed], [y_fixed], color='black', s=50)
+plt.text(x_fixed, y_fixed, '$x^*$', verticalalignment='bottom', fontsize=12)
+
+# Labels and limits
+plt.xlabel("$x_n$")
+plt.ylabel("$x_{n+1}$")
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+plt.legend()
+plt.show()
