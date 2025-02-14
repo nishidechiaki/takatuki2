@@ -1,0 +1,34 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def pitchfork_bifurcation(r_values):
+    x_stable = []
+    x_unstable = []
+    r_stable = []
+    r_unstable = []
+    
+    for r in r_values:
+        if r < 0:
+            x_stable.append(0)
+            r_stable.append(r)
+        else:
+            x_stable.extend([np.sqrt(r), -np.sqrt(r)])
+            r_stable.extend([r, r])
+            x_unstable.append(0)
+            r_unstable.append(r)
+    
+    return r_stable, x_stable, r_unstable, x_unstable
+
+# パラメータの範囲を設定
+r_values = np.linspace(-1, 1, 100)
+r_stable, x_stable, r_unstable, x_unstable = pitchfork_bifurcation(r_values)
+
+# プロット
+plt.figure(figsize=(8, 6))
+plt.plot(r_stable, x_stable, 'b-', linewidth=1.5)  # 安定な固定点（実線）
+plt.plot(r_unstable, x_unstable, 'r--', linewidth=1.5)  # 不安定な固定点（破線）
+plt.axhline(0, color='black', linewidth=0.5, linestyle='--')
+plt.axvline(0, color='black', linewidth=0.5, linestyle='--')
+plt.xlabel("Parameter r")
+plt.ylabel("Fixed Points x")
+plt.show()
