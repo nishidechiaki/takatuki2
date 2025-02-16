@@ -1,0 +1,27 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプルデータの生成
+np.random.seed(42)
+time = np.linspace(0, 10, 100)
+data1 = np.random.normal(0, 0.1, 100)  # 分散さらに小さく
+data2 = np.random.normal(0, 0.2, 100)   # 分散さらに大きく
+
+fig, ax = plt.subplots(figsize=(5, 5))
+
+# 分散少なめのデータ (青色)
+ax.plot(time, data1, 'o-', markersize=3, color='blue', alpha=0.7)
+ax.axhline(y=np.mean(data1), color='blue', linestyle='dotted', linewidth=2)
+
+# 分散多めのデータ (赤色)
+ax.plot(time, data2, 'o-', markersize=3, color='red', alpha=0.7)
+ax.axhline(y=np.mean(data2), color='red', linestyle='dotted', linewidth=2)
+
+ax.set_xlabel("Time")
+ax.set_ylabel("State variable")
+
+ax.grid(True, linestyle='--', alpha=0.5)
+ax.legend()
+
+plt.tight_layout()
+plt.show()
